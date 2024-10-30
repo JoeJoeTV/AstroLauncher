@@ -449,7 +449,7 @@ class AstroLauncher():
                 upd_version = "0.0"
                 try:
                     with open(ntpath.join(updateLocation, "build.version"), "r") as f:
-                        upd_version = (f.readline())[:-10]
+                        upd_version = (f.readline().strip().split())[0]
                     if upd_version == latest_version:
                         update_downloaded = True
                 except:
@@ -491,7 +491,7 @@ class AstroLauncher():
                 upd_version = "0.0"
                 try:
                     with open(ntpath.join(updateLocation, "build.version"), "r") as f:
-                        upd_version = (f.readline())[:-10]
+                        upd_version = (f.readline().strip().split())[0]
                 except:
                     pass
                 if upd_version == latest_version or (latest_version == "unknown"):
