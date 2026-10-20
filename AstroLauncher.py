@@ -538,7 +538,7 @@ class AstroLauncher():
                 if ntpath.exists("update.p"):
                     with open("update.p", "r") as f:
                         update_status = f.read()
-                    if update_status != "completed":
+                    if update_status != "complete":
                         needs_update = True
 
                 # print('here3')
@@ -552,6 +552,8 @@ class AstroLauncher():
                 # print('here4')
                 if cur_version == "0.0":
                     needs_update = True
+                if not ntpath.exists(ntpath.join(self.astroPath, "AstroServer.exe")):
+                    needs_update = True
                 url = "https://astroservercheck.joejoetv.de/api/stats"
                 try:
                     data = json.load(AstroRequests.get(url))
@@ -560,8 +562,6 @@ class AstroLauncher():
                     # print('here6')
                     latest_version = data['stats']['latestVersion']
                     if version.parse(latest_version) > version.parse(cur_version):
-                        needs_update = True
-                    if not ntpath.exists(ntpath.join(self.astroPath, "AstroServer.exe")):
                         needs_update = True
                     if needs_update:
                         AstroLogging.logPrint(
@@ -573,17 +573,18 @@ class AstroLauncher():
                         # print('here8')
                         return True, latest_version
                 except Exception as e:
-                    print(e)
                     AstroLogging.logPrint(
                         "Couldn't get latest version number!", "warning")
-                    
-                    if self.launcherConfig.AutoUpdateServerSoftware and not check_only:
-                        self.update_server("unknown")
-                    
-                    with open(ntpath.join(self.astroPath, "build.version"), "r") as f:
-                        cur_version = (f.readline())[:-10]
-                    
-                    return True, cur_version
+                    AstroLogging.logPrint(
+                        f"{type(e).__name__}: {str(e)}", msgType="debug")
+
+                    # The server checker being unreachable says nothing about whether an
+                    # update exists, so only fall back to updating if the install is
+                    # missing or a previous update was interrupted.
+                    if needs_update:
+                        if self.launcherConfig.AutoUpdateServerSoftware and not check_only:
+                            self.update_server("unknown")
+                        return True, "unknown"
 
             cur_version = "0.0"
             with open(ntpath.join(self.astroPath, "build.version"), "r") as f:
